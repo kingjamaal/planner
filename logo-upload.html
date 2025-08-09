@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Upload - Dear Mama Planners</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #f5f1eb 0%, #e8ddd4 100%);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #8B4513;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .upload-area {
+            border: 3px dashed #8B4513;
+            border-radius: 10px;
+            padding: 40px;
+            margin: 30px 0;
+            background: #faf8f5;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            background: #f0ede8;
+            border-color: #a0522d;
+        }
+        
+        .upload-area.dragover {
+            background: #e8ddd4;
+            border-color: #654321;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .upload-text {
+            color: #8B4513;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        
+        .file-info {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .preview-area {
+            margin: 30px 0;
+            padding: 20px;
+            background: #faf8f5;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .preview-logo {
+            max-width: 400px;
+            max-height: 200px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .buttons {
+            margin-top: 30px;
+        }
+        
+        button {
+            background: #8B4513;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #a0522d;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .back-link {
+            margin-top: 30px;
+        }
+        
+        .back-link a {
+            color: #8B4513;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+        
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .instructions {
+            background: #f9f6f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            color: #8B4513;
+            margin-top: 0;
+        }
+        
+        .instructions ul {
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Your Logo</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ul>
+                <li>Upload your "Dear Mama Planners" logo image file</li>
+                <li>Supported formats: PNG, JPG, JPEG, SVG</li>
+                <li>Recommended size: 400-500px wide for best quality</li>
+                <li>The logo will replace the current one on your planner cover page</li>
+            </ul>
+        </div>
+        
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-text">Click here or drag & drop your logo</div>
+            <div class="file-info">PNG, JPG, JPEG, SVG files accepted</div>
+            <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.svg" />
+        </div>
+        
+        <div class="preview-area" id="previewArea">
+            <h3>Preview:</h3>
+            <img id="previewImage" class="preview-logo" alt="Logo Preview" />
+        </div>
+        
+        <div class="buttons">
+            <button id="applyButton" disabled onclick="applyLogo()">Apply Logo to Planner</button>
+            <button onclick="clearLogo()">Clear</button>
+        </div>
+        
+        <div class="back-link">
+            <a href="index.html">← Back to Planner</a>
+        </div>
+    </div>
+    
+    <script>
+        let selectedFile = null;
+        
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.querySelector('.upload-area');
+        const previewArea = document.getElementById('previewArea');
+        const previewImage = document.getElementById('previewImage');
+        const applyButton = document.getElementById('applyButton');
+        
+        // File input change handler
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+        
+        function handleFile(file) {
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please select a valid image file (PNG, JPG, JPEG, or SVG)');
+                return;
+            }
+            
+            selectedFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewArea.style.display = 'block';
+                applyButton.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function clearLogo() {
+            selectedFile = null;
+            fileInput.value = '';
+            previewArea.style.display = 'none';
+            applyButton.disabled = true;
+        }
+        
+        function applyLogo() {
+            if (!selectedFile) {
+                alert('Please select a logo file first.');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const logoData = e.target.result;
+                
+                // Store the logo data in localStorage
+                localStorage.setItem('customLogo', logoData);
+                localStorage.setItem('customLogoType', selectedFile.type);
+                
+                alert('Logo applied successfully! Redirecting to your planner...');
+                window.location.href = 'index.html';
+            };
+            reader.readAsDataURL(selectedFile);
+        }
+    </script>
+</body>
+</html>
